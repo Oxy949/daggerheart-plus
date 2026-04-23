@@ -1741,6 +1741,69 @@ body.theme-dark .daggerheart-plus.sheet.character .character-sidebar-sheet {
   .character-sidebar-sheet
   .loadout-section
   .inventory-item
+  .item-tags,
+.daggerheart-plus.sheet.character
+  .character-sidebar-sheet
+  .loadout-section
+  .inventory-item
+  .item-labels,
+.daggerheart-plus.sheet.character
+  .character-sidebar-sheet
+  .loadout-section
+  .inventory-item
+  .item-resource,
+.daggerheart-plus.sheet.character
+  .character-sidebar-sheet
+  .loadout-section
+  .inventory-item
+  .inventory-item-content,
+.dh-inline-rails.rails-left
+  .floating-rail-left
+  .loadout-section
+  .inventory-item
+  .item-tags,
+.dh-inline-rails.rails-left
+  .floating-rail-left
+  .loadout-section
+  .inventory-item
+  .item-labels,
+.dh-inline-rails.rails-left
+  .floating-rail-left
+  .loadout-section
+  .inventory-item
+  .item-resource,
+.dh-inline-rails.rails-left
+  .floating-rail-left
+  .loadout-section
+  .inventory-item
+  .inventory-item-content {
+  display: none !important;
+}
+
+.daggerheart-plus.sheet.character
+  .character-sidebar-sheet
+  .loadout-section
+  .inventory-item
+  .item-name,
+.dh-inline-rails.rails-left
+  .floating-rail-left
+  .loadout-section
+  .inventory-item
+  .item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.daggerheart-plus.sheet.character
+  .character-sidebar-sheet
+  .loadout-section
+  .inventory-item
   .item-labels,
 .daggerheart-plus.sheet.character
   .character-sidebar-sheet
