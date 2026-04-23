@@ -4,6 +4,7 @@ import { EnhancedDiceStyling } from "../applications/enhanced-dice-styling.js";
 import { EnhancedChatEffects } from "../applications/enhanced-chat-effects.js";
 import { MODULE_ID } from "./constants.js";
 import { applyTokenCountersVisibilityBySetting } from "./style-toggles.js";
+import { getActorArmorData, setActorArmorValue } from "./compat.js";
 
 export function initializeEnhancedDiceStyling() {
   EnhancedDiceStyling.initialize();
@@ -125,19 +126,9 @@ export function bindProgressBarClicks(root, actor) {
 
     const adjustArmorMarks = async (delta) => {
       try {
-        const armorItem = actor.items?.find?.(
-          (i) => i.type === "armor" && i.system?.equipped
-        );
-        if (!armorItem) return false;
-        const current = Number(armorItem.system?.marks?.value ?? 0) || 0;
-        const max =
-          Number(
-            actor.system?.armorScore ?? armorItem.system?.baseScore ?? 0
-          ) || 0;
-        const next = Math.max(0, Math.min(max, current + delta));
-        if (next === current) return true;
-        await armorItem.update({ "system.marks.value": next });
-        return true;
+        const armor = getActorArmorData(actor);
+        if (!armor.hasArmor) return false;
+        return setActorArmorValue(actor, armor.marks + delta, armor.uuid);
       } catch (e) {
         console.warn("Daggerheart Plus | adjustArmorMarks failed", e);
         return false;

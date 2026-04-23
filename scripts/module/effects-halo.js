@@ -531,10 +531,8 @@ function patchTokenPrototype() {
     }
   };
 
-  if (libWrapper?.register) {
-    libWrapper.register(MODULE_ID, "foundry.canvas.placeables.Token.prototype._refreshEffects", refreshWrapper, "MIXED");
-    libWrapper.register(MODULE_ID, "foundry.canvas.placeables.Token.prototype._drawEffect", drawWrapper, "MIXED");
-  } else {
+  const libWrapperApi = globalThis.libWrapper;
+  const applyManualPatch = () => {
     originalRefreshEffects = proto._refreshEffects;
     originalDrawEffect = proto._drawEffect;
 
@@ -566,6 +564,18 @@ function patchTokenPrototype() {
         }
       };
     }
+  };
+
+  if (libWrapperApi?.register) {
+    try {
+      libWrapperApi.register(MODULE_ID, "CONFIG.Token.objectClass.prototype._refreshEffects", refreshWrapper, "MIXED");
+      libWrapperApi.register(MODULE_ID, "CONFIG.Token.objectClass.prototype._drawEffect", drawWrapper, "MIXED");
+    } catch (error) {
+      console.warn("Daggerheart Plus | libWrapper token patch failed, using direct patch", error);
+      applyManualPatch();
+    }
+  } else {
+    applyManualPatch();
   }
 
   patchApplied = true;

@@ -1,3 +1,5 @@
+import { canModifyDocument, getActorArmorData, setActorArmorValue } from "../module/compat.js";
+
 const MODULE_ID = "daggerheart-plus";
 const LOCATION_SETTING_KEY = "fearTrackerPosition";
 const DEFAULT_LOCATION = "bottom";
@@ -161,13 +163,12 @@ export class TokenCounterUI {
         max: Number(system.resources.stress?.max ?? 0) || 0,
       };
 
-      const armorItem = actor.items?.find?.(
-        (i) => i.type === "armor" && i.system?.equipped
-      );
-      const armorMarks = Number(armorItem?.system?.marks?.value ?? 0) || 0;
-      const armorMax =
-        Number(system.armorScore ?? armorItem?.system?.baseScore ?? 0) || 0;
-      this.armorSlots = { current: armorMarks, max: armorMax };
+      const armor = getActorArmorData(actor);
+      this.armorSlots = {
+        current: armor.marks,
+        max: armor.max,
+        uuid: armor.uuid,
+      };
     } else if (
       this.actorType === "adversary" ||
       this.actorType === "companion"
@@ -313,20 +314,16 @@ export class TokenCounterUI {
         maxValue = this.characterStress.max;
         break;
       case "armor-slots":
-        const armorItem = actor.items?.find?.(
-          (i) => i.type === "armor" && i.system?.equipped
-        );
+        const armor = getActorArmorData(actor);
         currentValue =
           Number(this.armorSlots.current) ||
-          Number(armorItem?.system?.marks?.value ?? 0) ||
+          Number(armor.marks) ||
           0;
         maxValue =
           Number(this.armorSlots.max) ||
-          Number(
-            actor.system?.armorScore ?? armorItem?.system?.baseScore ?? 0
-          ) ||
+          Number(armor.max) ||
           0;
-        if (!armorItem) return;
+        if (!armor.hasArmor) return;
         break;
       default:
         return;
@@ -336,11 +333,7 @@ export class TokenCounterUI {
 
     if (newValue !== currentValue) {
       if (type === "armor-slots") {
-        const armorItem = actor.items?.find?.(
-          (i) => i.type === "armor" && i.system?.equipped
-        );
-        if (!armorItem) return;
-        await armorItem.update({ "system.marks.value": newValue });
+        await setActorArmorValue(actor, newValue, this.armorSlots.uuid);
       } else {
         await actor.update({ [updatePath]: newValue });
       }
@@ -453,7 +446,7 @@ export class TokenCounterUI {
     if (!this.selectedToken) return false;
 
     const actor = this.selectedToken.actor;
-    return game.user.isGM || game.user.hasRole("ASSISTANT") || actor.isOwner;
+    return canModifyDocument(actor);
   }
 
   dispose() {

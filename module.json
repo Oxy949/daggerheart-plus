@@ -3,12 +3,12 @@
   "title": "Daggerheart Plus",
   "description": "A module that improves upon the default Daggerheart system UI/UX",
   "version": "#{VERSION}#",
-  "library": "false",
+  "library": false,
   "compatibility": {
-    "minimum": 13,
-    "verified": 14
+    "minimum": "14.359",
+    "verified": "14.360"
   },
-  "authors": [ 
+  "authors": [
     {
       "name": "Oxy949",
       "email": "oxy949@gmail.com",
@@ -26,7 +26,8 @@
         "id": "daggerheart",
         "type": "system",
         "compatibility": {
-          "minimum": "1.2.0"
+          "minimum": "2.0.0",
+          "verified": "2.1.2"
         }
       }
     ],

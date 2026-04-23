@@ -2,6 +2,7 @@ import { MODULE_ID, COLOR_LIGHT_DARK_DEFAULTS, COLOR_CSS_MAP, colorSettingKey } 
 import { applyEffectsHaloSetting, applyEffectsHaloIconSize, applyEffectsHaloSpacing } from "./effects-halo.js";
 import { applyTooltipCardMaxWidth } from "./tooltip-manager.js";
 import { applyEnhancedChatStyles, applyParticleEffects, applyCriticalHitParticles, applyTokenCountersVisibilityBySetting, applyDomainCardOpenSetting, applyCurrencyVisibility, applySystemCurrencyVisibility, applyCurrencyIcons, applyCurrencyLabels, applyColorOverrides, applyCustomFont } from "./style-toggles.js";
+import { getRenderedApplications } from "./compat.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -751,7 +752,7 @@ export function registerModuleSettings() {
     default: true,
     onChange: (value) => {
       try {
-        for (const [, app] of foundry.applications.instances) {
+        for (const app of getRenderedApplications()) {
           if (app?.constructor?.name !== "DaggerheartPlusCharacterSheet") continue;
           if (value) app._mountInlineRails?.();
           else app._removeInlineRails?.();
@@ -785,7 +786,7 @@ export function registerModuleSettings() {
     default: false,
     onChange: (value) => {
       try {
-        for (const [, app] of foundry.applications.instances) {
+        for (const app of getRenderedApplications()) {
           if (app?.constructor?.name !== "DaggerheartPlusCharacterSheet") continue;
           app._updateAllLoadoutResourceBadges?.();
         }
@@ -803,7 +804,7 @@ export function registerModuleSettings() {
     default: false,
     onChange: () => {
       try {
-        for (const [, app] of foundry.applications.instances) {
+        for (const app of getRenderedApplications()) {
           if (app?.constructor?.name?.startsWith?.("DaggerheartPlus") && typeof app.render === "function") {
             app.render(false);
           }
