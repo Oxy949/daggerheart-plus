@@ -2,7 +2,25 @@ import { canModifyDocument, getActorArmorData, setActorArmorValue } from "../mod
 
 const MODULE_ID = "daggerheart-plus";
 const LOCATION_SETTING_KEY = "fearTrackerPosition";
+const LINKED_ACTOR_COUNTERS_SETTING_KEY = "alwaysShowLinkedActorCounters";
 const DEFAULT_LOCATION = "bottom";
+
+function getClientSetting(key, fallback = false) {
+  try {
+    return Boolean(game.settings.get(MODULE_ID, key));
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function getLinkedCharacterActor() {
+  const character = game.user?.character;
+  if (!character) return null;
+  if (character.system) return character;
+
+  const actorId = typeof character === "string" ? character : character.id;
+  return actorId ? game.actors?.get?.(actorId) ?? null : null;
+}
 
 function getTrackerLocation() {
   try {
@@ -67,6 +85,7 @@ export class TokenCounterUI {
   constructor() {
     this.element = null;
     this.selectedToken = null;
+    this.selectedActor = null;
     this.hp = { current: 0, max: 0 };
     this.hope = { current: 0, max: 0 };
     this.stress = { current: 0, max: 0 };
@@ -81,17 +100,17 @@ export class TokenCounterUI {
     this._hooks.controlToken = (token, controlled) => {
       if (controlled && token?.actor) {
         this.setSelectedToken(token);
-      } else if (!controlled && (canvas.tokens.controlled?.length || 0) === 0) {
-        this.hide();
+      } else {
+        setTimeout(() => this.refreshSource(), 0);
       }
     };
     Hooks.on("controlToken", this._hooks.controlToken);
 
     this._hooks.updateActor = (actor, changes) => {
-      if (this.selectedToken && this.selectedToken.actor?.id === actor.id) {
+      if (this.selectedActor?.id === actor.id) {
         setTimeout(() => {
-          this.updateFromToken(this.selectedToken);
-          this.render();
+          if (this.updateFromActor(actor)) this.render();
+          else this.hide();
         }, 50);
       }
     };
@@ -100,12 +119,12 @@ export class TokenCounterUI {
     this._hooks.updateItem = (item, changes) => {
       try {
         const parentId = item?.parent?.id || item?.actor?.id;
-        if (!this.selectedToken || parentId !== this.selectedToken.actor?.id)
+        if (!this.selectedActor || parentId !== this.selectedActor.id)
           return;
         if (item.type !== "armor") return;
         setTimeout(() => {
-          this.updateFromToken(this.selectedToken);
-          this.render();
+          if (this.updateFromActor(this.selectedActor)) this.render();
+          else this.hide();
         }, 25);
       } catch {}
     };
@@ -114,16 +133,40 @@ export class TokenCounterUI {
     this._hooks.updateToken = (token, changes) => {
       if (this.selectedToken && this.selectedToken.id === token.id) {
         setTimeout(() => {
-          this.updateFromToken(this.selectedToken);
-          this.render();
+          if (this.updateFromToken(this.selectedToken)) this.render();
+          else this.hide();
         }, 50);
       }
     };
     Hooks.on("updateToken", this._hooks.updateToken);
 
-    if ((canvas.tokens.controlled?.length || 0) > 0) {
-      this.setSelectedToken(canvas.tokens.controlled[0]);
+    this._hooks.updateUser = (user, changes) => {
+      if (user?.id !== game.user?.id || !("character" in (changes ?? {})))
+        return;
+      setTimeout(() => this.refreshSource(), 50);
+    };
+    Hooks.on("updateUser", this._hooks.updateUser);
+
+    this.refreshSource();
+  }
+
+  refreshSource() {
+    const controlled =
+      canvas?.tokens?.controlled?.filter?.((token) => token?.actor) ?? [];
+    if (controlled.length > 0) {
+      this.setSelectedToken(controlled[0]);
+      return;
     }
+
+    if (getClientSetting(LINKED_ACTOR_COUNTERS_SETTING_KEY, false)) {
+      const actor = getLinkedCharacterActor();
+      if (actor) {
+        this.setSelectedActor(actor);
+        return;
+      }
+    }
+
+    this.hide();
   }
 
   setSelectedToken(token) {
@@ -133,18 +176,44 @@ export class TokenCounterUI {
     }
 
     this.selectedToken = token;
-    this.updateFromToken(token);
+    this.selectedActor = token.actor;
+    if (!this.updateFromActor(token.actor)) {
+      this.hide();
+      return;
+    }
+    this.show();
+    this.render();
+  }
+
+  setSelectedActor(actor) {
+    if (!actor) {
+      this.hide();
+      return;
+    }
+
+    this.selectedToken = null;
+    this.selectedActor = actor;
+    if (!this.updateFromActor(actor)) {
+      this.hide();
+      return;
+    }
     this.show();
     this.render();
   }
 
   updateFromToken(token) {
-    if (!token || !token.actor) return;
+    if (!token || !token.actor) return false;
 
-    const actor = token.actor;
+    this.selectedActor = token.actor;
+    return this.updateFromActor(token.actor);
+  }
+
+  updateFromActor(actor) {
+    if (!actor) return false;
 
     const system = actor.system;
-    if (!system?.resources) return;
+    if (!system?.resources) return false;
+    this.selectedActor = actor;
     this.actorType = actor.type;
 
     this.hp = {
@@ -183,10 +252,12 @@ export class TokenCounterUI {
     if (rightContainer) {
       this.createRightCounters(rightContainer);
     }
+
+    return true;
   }
 
   async render() {
-    if (!this.selectedToken || !this.element) return;
+    if (!this.selectedActor || !this.element) return;
 
     const container = this.element;
     container.innerHTML = "";
@@ -285,9 +356,9 @@ export class TokenCounterUI {
   }
 
   async modifyResource(type, amount) {
-    if (!this.selectedToken || !this.canModify()) return;
+    if (!this.selectedActor || !this.canModify()) return;
 
-    const actor = this.selectedToken.actor;
+    const actor = this.selectedActor;
     let updatePath = "";
     let currentValue = 0;
     let maxValue = 0;
@@ -344,6 +415,7 @@ export class TokenCounterUI {
     if (!this.element) this.createElement();
     this.ensureWrapperLocation();
     if (this.element) this.element.style.display = "";
+    this.updateWrapperDisplay();
   }
 
   hide() {
@@ -354,6 +426,8 @@ export class TokenCounterUI {
       if (right) right.innerHTML = "";
     } catch (_) {}
     this.selectedToken = null;
+    this.selectedActor = null;
+    this.updateWrapperDisplay();
   }
 
   createElement(retries = 0) {
@@ -408,7 +482,7 @@ export class TokenCounterUI {
   }
 
   createRightCounters(rightContainer) {
-    if (!this.selectedToken || !this.canModify()) {
+    if (!this.selectedActor || !this.canModify()) {
       rightContainer.innerHTML = "";
       return;
     }
@@ -443,10 +517,19 @@ export class TokenCounterUI {
   }
 
   canModify() {
-    if (!this.selectedToken) return false;
+    if (!this.selectedActor) return false;
 
-    const actor = this.selectedToken.actor;
-    return canModifyDocument(actor);
+    return canModifyDocument(this.selectedActor);
+  }
+
+  hasActiveCounters() {
+    return Boolean(this.element && this.selectedActor && this.canModify());
+  }
+
+  updateWrapperDisplay() {
+    try {
+      window.daggerheartPlus?.updateCountersWrapperDisplay?.();
+    } catch (_) {}
   }
 
   dispose() {
@@ -459,6 +542,8 @@ export class TokenCounterUI {
         Hooks.off("updateItem", this._hooks.updateItem);
       if (this._hooks?.updateToken)
         Hooks.off("updateToken", this._hooks.updateToken);
+      if (this._hooks?.updateUser)
+        Hooks.off("updateUser", this._hooks.updateUser);
     } catch (_) {}
     this._hooks = {};
 
@@ -466,6 +551,8 @@ export class TokenCounterUI {
       this.element.remove();
       this.element = null;
     }
+    this.selectedToken = null;
+    this.selectedActor = null;
 
     try {
       const right = document.querySelector("#token-counters-right");

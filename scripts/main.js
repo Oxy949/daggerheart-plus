@@ -115,6 +115,12 @@ Hooks.once("ready", async () => {
       return;
     }
 
+    if (settingName === "alwaysShowLinkedActorCounters") {
+      window.daggerheartPlus?.tokenCounter?.refreshSource?.();
+      window.daggerheartPlus?.updateCountersWrapperDisplay?.();
+      return;
+    }
+
     if (settingName === "enableEffectsHalo") {
       applyEffectsHaloSetting(Boolean(setting.value));
       return;

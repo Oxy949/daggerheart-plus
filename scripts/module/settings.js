@@ -152,6 +152,7 @@ class UIElementsConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       fearTrackerPosition: game.settings.get(MODULE_ID, "fearTrackerPosition"),
       fearTrackerStyle: game.settings.get(MODULE_ID, "fearTrackerStyle"),
       enableTokenCounters: game.settings.get(MODULE_ID, "enableTokenCounters"),
+      alwaysShowLinkedActorCounters: game.settings.get(MODULE_ID, "alwaysShowLinkedActorCounters"),
       enableCharacterSheetSidebars: game.settings.get(MODULE_ID, "enableCharacterSheetSidebars"),
       tooltipCardMaxWidth: game.settings.get(MODULE_ID, "tooltipCardMaxWidth"),
       alwaysShowLoadoutResourceCounters: game.settings.get(MODULE_ID, "alwaysShowLoadoutResourceCounters"),
@@ -165,6 +166,7 @@ class UIElementsConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     await game.settings.set(MODULE_ID, "fearTrackerPosition", data.fearTrackerPosition ?? "bottom");
     await game.settings.set(MODULE_ID, "fearTrackerStyle", data.fearTrackerStyle ?? "counter");
     await game.settings.set(MODULE_ID, "enableTokenCounters", data.enableTokenCounters ?? false);
+    await game.settings.set(MODULE_ID, "alwaysShowLinkedActorCounters", data.alwaysShowLinkedActorCounters ?? false);
     await game.settings.set(MODULE_ID, "enableCharacterSheetSidebars", data.enableCharacterSheetSidebars ?? false);
     await game.settings.set(MODULE_ID, "tooltipCardMaxWidth", data.tooltipCardMaxWidth ?? 304);
     await game.settings.set(MODULE_ID, "alwaysShowLoadoutResourceCounters", data.alwaysShowLoadoutResourceCounters ?? false);
@@ -877,6 +879,22 @@ export function registerModuleSettings() {
         applyTokenCountersVisibilityBySetting();
       } catch (e) {
         console.warn("Daggerheart Plus | Failed applying token counters toggle", e);
+      }
+    },
+  });
+
+  game.settings.register(MODULE_ID, "alwaysShowLinkedActorCounters", {
+    name: "Always Show Linked Character Counters",
+    scope: "client",
+    config: false,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      try {
+        window.daggerheartPlus?.tokenCounter?.refreshSource?.();
+        window.daggerheartPlus?.updateCountersWrapperDisplay?.();
+      } catch (e) {
+        console.warn("Daggerheart Plus | Failed applying linked character counters toggle", e);
       }
     },
   });

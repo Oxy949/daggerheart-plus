@@ -80,6 +80,8 @@
   "DHP.Settings.UIElements.Counters.Title": "Счетчики",
   "DHP.Settings.UIElements.TokenCounters.Name": "Счетчики токена",
   "DHP.Settings.UIElements.TokenCounters.Hint": "Показывать HP, надежду, стресс и броню выбранного токена.",
+  "DHP.Settings.UIElements.LinkedActorCounters.Name": "Всегда показывать счетчики персонажа",
+  "DHP.Settings.UIElements.LinkedActorCounters.Hint": "Если токен не выбран, показывать HP, надежду, стресс и броню привязанного персонажа.",
   "DHP.Settings.UIElements.LoadoutCounters.Name": "Всегда показывать счетчики снаряжения",
   "DHP.Settings.UIElements.LoadoutCounters.Hint": "Показывать счетчики на карточках снаряжения даже без наведения.",
   "DHP.Settings.UIElements.Sheets.Title": "Листы",

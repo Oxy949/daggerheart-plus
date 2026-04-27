@@ -228,9 +228,12 @@ export function updateCountersWrapperDisplay() {
       game.settings.get(MODULE_ID, "enableTokenCounters")
     );
     const hasSelectedToken = Boolean(canvas?.tokens?.controlled?.length);
+    const tokenCounter = window.daggerheartPlus?.tokenCounter;
     const tokenCountersActive = Boolean(
       tokenCountersEnabled &&
-        (window.daggerheartPlus?.tokenCounter?.element || hasSelectedToken)
+        (tokenCounter?.hasActiveCounters?.() ??
+          tokenCounter?.element ??
+          hasSelectedToken)
     );
 
     const shouldShow = fearActive || tokenCountersActive;
