@@ -3,7 +3,7 @@ import { UIOverlayParticles } from "../../applications/ui-overlay-particles.js";
 import {
   canModifyDocument,
   getActorArmorData,
-  toggleActorArmorSlot,
+  setActorArmorValue,
 } from "../compat.js";
 
 export function getDefaultSheetSize() {
@@ -49,27 +49,89 @@ function bindResourcePipClicks(root, actor) {
   const canModify = canModifyDocument(actor);
   if (!canModify) return;
 
+  const pendingValues = (root._dhpPendingResourceValues ??= {});
+  const actorKey = actor.uuid ?? actor.id ?? "actor";
+  const toFiniteNumber = (value, fallback = 0) => {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+    const fallbackNumeric = Number(fallback);
+    return Number.isFinite(fallbackNumeric) ? fallbackNumeric : 0;
+  };
+  const refreshTokenCounters = () => {
+    try {
+      window.daggerheartPlus?.tokenCounter?.refreshSelectedSource?.({
+        settle: true,
+      });
+    } catch (_) {}
+  };
+  const releasePendingValue = (key, expectedValue) => {
+    setTimeout(() => {
+      if (pendingValues[key] === expectedValue) delete pendingValues[key];
+    }, 250);
+  };
+
   const toggleResource = async (action, clickedValue, itemUuid) => {
     let currentValue, maxValue;
+    let pendingKey;
 
     if (action === "toggleHitPoints") {
-      currentValue = Number(actor.system?.resources?.hitPoints?.value ?? 0);
-      maxValue = Number(actor.system?.resources?.hitPoints?.max ?? 0);
+      pendingKey = `${actorKey}:hp`;
+      currentValue = toFiniteNumber(
+        pendingValues[pendingKey],
+        actor.system?.resources?.hitPoints?.value
+      );
+      maxValue = toFiniteNumber(actor.system?.resources?.hitPoints?.max);
       const newValue = clickedValue <= currentValue ? clickedValue - 1 : clickedValue;
       const clampedValue = Math.max(0, Math.min(newValue, maxValue));
       if (clampedValue !== currentValue) {
-        await actor.update({ "system.resources.hitPoints.value": clampedValue });
+        pendingValues[pendingKey] = clampedValue;
+        try {
+          await actor.update({ "system.resources.hitPoints.value": clampedValue });
+        } finally {
+          refreshTokenCounters();
+          releasePendingValue(pendingKey, clampedValue);
+        }
       }
     } else if (action === "toggleStress") {
-      currentValue = Number(actor.system?.resources?.stress?.value ?? 0);
-      maxValue = Number(actor.system?.resources?.stress?.max ?? 0);
+      pendingKey = `${actorKey}:stress`;
+      currentValue = toFiniteNumber(
+        pendingValues[pendingKey],
+        actor.system?.resources?.stress?.value
+      );
+      maxValue = toFiniteNumber(actor.system?.resources?.stress?.max);
       const newValue = clickedValue <= currentValue ? clickedValue - 1 : clickedValue;
       const clampedValue = Math.max(0, Math.min(newValue, maxValue));
       if (clampedValue !== currentValue) {
-        await actor.update({ "system.resources.stress.value": clampedValue });
+        pendingValues[pendingKey] = clampedValue;
+        try {
+          await actor.update({ "system.resources.stress.value": clampedValue });
+        } finally {
+          refreshTokenCounters();
+          releasePendingValue(pendingKey, clampedValue);
+        }
       }
     } else if (action === "toggleArmorSlot") {
-      await toggleActorArmorSlot(actor, clickedValue, itemUuid);
+      const armor = getActorArmorData(actor);
+      if (!armor.hasArmor) return;
+      pendingKey = `${actorKey}:armor:${itemUuid ?? armor.uuid ?? ""}`;
+      currentValue = toFiniteNumber(pendingValues[pendingKey], armor.marks);
+      maxValue = toFiniteNumber(armor.max);
+      const newValue = clickedValue <= currentValue ? clickedValue - 1 : clickedValue;
+      const clampedValue = Math.max(0, Math.min(newValue, maxValue));
+      if (clampedValue !== currentValue) {
+        pendingValues[pendingKey] = clampedValue;
+        try {
+          const ok = await setActorArmorValue(
+            actor,
+            clampedValue,
+            itemUuid ?? armor.uuid
+          );
+          if (!ok) pendingValues[pendingKey] = armor.marks;
+        } finally {
+          refreshTokenCounters();
+          releasePendingValue(pendingKey, clampedValue);
+        }
+      }
     }
   };
 
