@@ -4,6 +4,7 @@
   "description": "A module that improves upon the default Daggerheart system UI/UX",
   "main": "scripts/main.js",
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
     "build": "node tools/create-release.js",
     "release": "node tools/release.js",
     "release:dry": "node tools/release.js --dry-run",

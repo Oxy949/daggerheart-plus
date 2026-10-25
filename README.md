@@ -4,6 +4,9 @@
 Continuation of original Daggerheart Plus by featureJosh (https://github.com/featureJosh/daggerheart-plus).
 
 # Daggerheart Plus
+
+Requires Daggerheart 2.11.2 or later on Foundry VTT 14. Token status icons and distance measurement use the system's native behavior.
+
 <img width="2296" height="854" alt="gv9jBpy" src="https://github.com/user-attachments/assets/d6dfa6a0-88ae-4377-993c-517f44eb5d17" />
 
 ## Installation

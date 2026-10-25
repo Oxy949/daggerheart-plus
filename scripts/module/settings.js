@@ -1,5 +1,4 @@
 import { MODULE_ID, COLOR_LIGHT_DARK_DEFAULTS, COLOR_CSS_MAP, colorSettingKey } from "./constants.js";
-import { applyEffectsHaloSetting, applyEffectsHaloIconSize, applyEffectsHaloSpacing } from "./effects-halo.js";
 import { applyTooltipCardMaxWidth } from "./tooltip-manager.js";
 import { applyEnhancedChatStyles, applyParticleEffects, applyCriticalHitParticles, applyTokenCountersVisibilityBySetting, applyDomainCardOpenSetting, applyCurrencyVisibility, applySystemCurrencyVisibility, applyCurrencyIcons, applyCurrencyLabels, applyColorOverrides, applyCustomFont } from "./style-toggles.js";
 import { getRenderedApplications } from "./compat.js";
@@ -171,46 +170,6 @@ class UIElementsConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     await game.settings.set(MODULE_ID, "tooltipCardMaxWidth", data.tooltipCardMaxWidth ?? 304);
     await game.settings.set(MODULE_ID, "alwaysShowLoadoutResourceCounters", data.alwaysShowLoadoutResourceCounters ?? false);
     await game.settings.set(MODULE_ID, "enableResourcePips", data.enableResourcePips ?? false);
-  }
-}
-
-class TokenEffectsConfig extends HandlebarsApplicationMixin(ApplicationV2) {
-  static DEFAULT_OPTIONS = {
-    id: "dhp-token-effects-config",
-    tag: "form",
-    window: {
-      title: "DHP.Settings.TokenEffects.Title",
-      icon: "fas fa-sparkles",
-    },
-    position: {
-      width: 400,
-      height: "auto",
-    },
-    form: {
-      handler: TokenEffectsConfig.#onSubmit,
-      closeOnSubmit: true,
-    },
-  };
-
-  static PARTS = {
-    form: {
-      template: `modules/${MODULE_ID}/templates/applications/token-effects-config.hbs`,
-    },
-  };
-
-  async _prepareContext(options) {
-    return {
-      enableEffectsHalo: game.settings.get(MODULE_ID, "enableEffectsHalo"),
-      effectsHaloIconSize: game.settings.get(MODULE_ID, "effectsHaloIconSize"),
-      effectsHaloSpacing: game.settings.get(MODULE_ID, "effectsHaloSpacing"),
-    };
-  }
-
-  static async #onSubmit(event, form, formData) {
-    const data = formData.object;
-    await game.settings.set(MODULE_ID, "enableEffectsHalo", data.enableEffectsHalo ?? true);
-    await game.settings.set(MODULE_ID, "effectsHaloIconSize", data.effectsHaloIconSize ?? 18);
-    await game.settings.set(MODULE_ID, "effectsHaloSpacing", data.effectsHaloSpacing ?? 0.85);
   }
 }
 
@@ -542,48 +501,6 @@ class CustomFontConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 }
 
-class HoverDistanceConfig extends HandlebarsApplicationMixin(ApplicationV2) {
-  static DEFAULT_OPTIONS = {
-    id: "dhp-hover-distance-config",
-    tag: "form",
-    window: {
-      title: "DHP.Settings.HoverDistance.Title",
-      icon: "fas fa-ruler",
-    },
-    position: {
-      width: 400,
-      height: "auto",
-    },
-    form: {
-      handler: HoverDistanceConfig.#onSubmit,
-      closeOnSubmit: true,
-    },
-  };
-
-  static PARTS = {
-    form: {
-      template: `modules/${MODULE_ID}/templates/applications/hover-distance-config.hbs`,
-    },
-  };
-
-  async _prepareContext(options) {
-    return {
-      enableHoverDistance: game.settings.get(MODULE_ID, "enableHoverDistance"),
-      hoverDistancePosition: game.settings.get(MODULE_ID, "hoverDistancePosition"),
-      hoverDistanceRounding: game.settings.get(MODULE_ID, "hoverDistanceRounding"),
-      hoverDistanceEdgeToEdge: game.settings.get(MODULE_ID, "hoverDistanceEdgeToEdge"),
-    };
-  }
-
-  static async #onSubmit(event, form, formData) {
-    const data = formData.object;
-    await game.settings.set(MODULE_ID, "enableHoverDistance", data.enableHoverDistance ?? true);
-    await game.settings.set(MODULE_ID, "hoverDistancePosition", data.hoverDistancePosition ?? "center");
-    await game.settings.set(MODULE_ID, "hoverDistanceRounding", data.hoverDistanceRounding ?? 0);
-    await game.settings.set(MODULE_ID, "hoverDistanceEdgeToEdge", data.hoverDistanceEdgeToEdge ?? false);
-  }
-}
-
 export function registerModuleSettings() {
 
   game.settings.registerMenu(MODULE_ID, "themeColorsMenu", {
@@ -602,15 +519,6 @@ export function registerModuleSettings() {
     icon: "fas fa-window-maximize",
     type: UIElementsConfig,
     restricted: false,
-  });
-
-  game.settings.registerMenu(MODULE_ID, "tokenEffectsMenu", {
-    name: "DHP.Settings.TokenEffects.Menu.Name",
-    label: "DHP.Settings.TokenEffects.Menu.Label",
-    hint: "DHP.Settings.TokenEffects.Menu.Hint",
-    icon: "fas fa-sparkles",
-    type: TokenEffectsConfig,
-    restricted: true,
   });
 
   game.settings.registerMenu(MODULE_ID, "chatEffectsMenu", {
@@ -658,15 +566,6 @@ export function registerModuleSettings() {
     restricted: false,
   });
 
-  game.settings.registerMenu(MODULE_ID, "hoverDistanceMenu", {
-    name: "DHP.Settings.HoverDistance.Menu.Name",
-    label: "DHP.Settings.HoverDistance.Menu.Label",
-    hint: "DHP.Settings.HoverDistance.Menu.Hint",
-    icon: "fas fa-ruler",
-    type: HoverDistanceConfig,
-    restricted: false,
-  });
-
   for (const [key, defaults] of Object.entries(COLOR_LIGHT_DARK_DEFAULTS)) {
     game.settings.register(MODULE_ID, colorSettingKey(key, "light"), {
       name: `DHP.Settings.ThemeColors.${key}Lt`,
@@ -695,53 +594,6 @@ export function registerModuleSettings() {
     onChange: (value) => {
       if (window.daggerheartPlus?.manageFearTracker) {
         window.daggerheartPlus.manageFearTracker();
-      }
-    },
-  });
-
-  game.settings.register(MODULE_ID, "enableEffectsHalo", {
-    name: "Token Effects Halo",
-    scope: "world",
-    config: false,
-    type: Boolean,
-    default: true,
-    requiresReload: true,
-    onChange: (value) => {
-      try {
-        applyEffectsHaloSetting(Boolean(value));
-      } catch (e) {
-        console.warn("Daggerheart Plus | Failed applying effects halo toggle", e);
-      }
-    },
-  });
-
-  game.settings.register(MODULE_ID, "effectsHaloIconSize", {
-    name: "Halo Icon Size",
-    scope: "world",
-    config: false,
-    type: Number,
-    default: 18,
-    requiresReload: true,
-    onChange: (value) => {
-      try {
-        applyEffectsHaloIconSize(Number(value));
-      } catch (e) {
-        console.warn("Daggerheart Plus | Failed applying effects halo size", e);
-      }
-    },
-  });
-
-  game.settings.register(MODULE_ID, "effectsHaloSpacing", {
-    name: "Halo Icon Spacing",
-    scope: "world",
-    config: false,
-    type: Number,
-    default: 0.85,
-    onChange: (value) => {
-      try {
-        applyEffectsHaloSpacing(Number(value));
-      } catch (e) {
-        console.warn("Daggerheart Plus | Failed applying effects halo spacing", e);
       }
     },
   });

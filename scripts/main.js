@@ -14,11 +14,6 @@ import {
   getDefaultAdversarySheetSize,
   applyDefaultSizeToApp,
 } from "./module/sheets/register.js";
-import {
-  registerHoverDistanceSettings,
-  initializeHoverDistance,
-} from "./module/hover-distance.js";
-import { HoverDistance } from "./applications/hover-distance.js";
 import { preloadModuleTemplates } from "./module/template-preload.js";
 import { registerGradientSettings } from "./module/progress-gradients.js";
 import { getRenderedApplications } from "./module/compat.js";
@@ -29,11 +24,9 @@ import {
   EnhancedChatEffects,
 } from "./module/global-api.js";
 import { registerUiHooks } from "./module/ui-hooks.js";
-import { initializeEffectsHalo, applyEffectsHaloSetting } from "./module/effects-halo.js";
 
 registerGradientSettings();
 registerUiHooks();
-initializeEffectsHalo();
 
 Hooks.once("init", () => {
   console.log("Daggerheart Plus | Initializing module");
@@ -47,14 +40,11 @@ Hooks.once("init", () => {
 
   registerModuleSettings();
   registerDomainCardHooks();
-  registerHoverDistanceSettings();
   preloadModuleTemplates();
   enhanceTooltipManager();
 });
 
 Hooks.once("ready", async () => {
-  initializeHoverDistance();
-
   try {
     applyColorOverrides();
   } catch (e) {
@@ -62,12 +52,6 @@ Hooks.once("ready", async () => {
   }
 
   try {
-    const effectsHaloEnabled = game.settings.get(
-      MODULE_ID,
-      "enableEffectsHalo"
-    );
-    applyEffectsHaloSetting(Boolean(effectsHaloEnabled));
-
     const enhancedEnabled = game.settings.get(
       MODULE_ID,
       "enableEnhancedChat"
@@ -118,20 +102,6 @@ Hooks.once("ready", async () => {
     if (settingName === "alwaysShowLinkedActorCounters") {
       window.daggerheartPlus?.tokenCounter?.refreshSource?.();
       window.daggerheartPlus?.updateCountersWrapperDisplay?.();
-      return;
-    }
-
-    if (settingName === "enableEffectsHalo") {
-      applyEffectsHaloSetting(Boolean(setting.value));
-      return;
-    }
-
-    if (settingName === "enableHoverDistance") {
-      if (!setting.value) {
-        try {
-          HoverDistance._clearAllDistances?.();
-        } catch (_) {}
-      }
       return;
     }
 
