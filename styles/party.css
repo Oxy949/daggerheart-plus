@@ -588,18 +588,6 @@ body.theme-dark .daggerheart-plus.sheet.party .party-header-sheet {
   color: var(--dhp-primary) !important;
 }
 
-.daggerheart-plus.sheet.party .tab.inventory .currency-section {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.daggerheart-plus.sheet.party .tab.inventory .currency-input {
-  grid-template-columns: auto auto;
-  padding: 0.4em 0.6em;
-  width: auto;
-}
-
 .daggerheart-plus.sheet.party .resources-overview {
   border: none;
   padding: 0;

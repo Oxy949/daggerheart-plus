@@ -1,6 +1,3 @@
-import { MODULE_ID } from "./constants.js";
-import { applyCurrencyVisibility, applySystemCurrencyVisibility, applyCurrencyIcons, applyCurrencyLabels } from "./style-toggles.js";
-
 export function registerUiHooks() {
   Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
     if (app?.constructor?.name !== "DaggerheartPlusCharacterSheet") return;
@@ -23,14 +20,6 @@ export function registerUiHooks() {
       }
     } catch (_) {}
 
-    try {
-      const currencyEnabled = game.settings.get(MODULE_ID, "enableCurrency");
-      applyCurrencyVisibility(currencyEnabled);
-      applySystemCurrencyVisibility();
-      applyCurrencyIcons();
-      applyCurrencyLabels();
-    } catch (_) {}
-
     if (app.constructor.name === "DaggerheartPlusCompanionSheet") {
       try {
         if (app.options?.window) app.options.window.resizable = false;
@@ -51,16 +40,5 @@ export function registerUiHooks() {
     try {
       app._removeInlineRails?.();
     } catch {}
-  });
-
-  Hooks.on("updateSetting", (setting, changes, options, userId) => {
-    if (setting.key === 'daggerheart.Homebrew') {
-      try {
-        applyCurrencyLabels();
-        applySystemCurrencyVisibility();
-      } catch (e) {
-        console.warn("Daggerheart Plus | Failed to apply currency labels on system setting change", e);
-      }
-    }
   });
 }

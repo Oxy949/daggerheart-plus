@@ -239,10 +239,53 @@
 }
 
 .chat-message .message-header-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title metadata"
+    "subtitle subtitle";
+  align-items: center;
+  gap: 4px 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-message .message-header-main > h4 {
+  grid-area: title;
+  min-width: 0;
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chat-message .message-header-main > .message-metadata {
+  grid-area: metadata;
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1;
+  align-self: start;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.chat-message .message-header-main > .subtitle {
+  grid-area: subtitle;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.chat-message .message-header-main > .subtitle > .name,
+.chat-message .message-header-main > .subtitle > .whisper-to {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.chat-message .message-header-main > .subtitle > .whisper-to {
+  white-space: normal;
 }
 
 .chat-message .actor-img {
@@ -337,10 +380,10 @@
   padding: 6px 12px 12px;
 }
 .chat-message .roll-part.roll-section {
-  background: #0000007d;
-  border: 1px solid var(--dhc-border);
+  background: light-dark(rgba(24, 22, 46, 0.05), rgba(0, 0, 0, 0.35));
+  border: 1px solid var(--dhc-border, light-dark(#c4b8a8, #343a67));
   border-radius: 10px;
-  padding: 10px 2em;
+  padding: 10px 12px;
 }
 
 .daggerheart .chat-message .chat-roll .roll-part-header {
@@ -440,8 +483,8 @@
   display: none;
 }
 
-.chat-message .chat-roll .roll-part-content,
-#chat-notifications .chat-message .chat-roll .roll-part-content {
+.chat-message .chat-roll .roll-section > .roll-part-content,
+#chat-notifications .chat-message .chat-roll .roll-section > .roll-part-content {
   display: flex;
   flex-direction: column;
   align-items: center;

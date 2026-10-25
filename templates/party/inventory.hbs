@@ -1,24 +1,9 @@
 <section class='tab {{tabs.inventory.cssClass}} {{tabs.inventory.id}}' data-tab='{{tabs.inventory.id}}'
     data-group='{{tabs.inventory.group}}'>
 
-    <div class="currency-section">
-        <div class="currency-input" data-currency="coins" data-tooltip="Coins">
-            <div class="icon" aria-hidden="true"><i class="fa-solid fa-coin-front"></i></div>
-            {{formInput systemFields.gold.fields.coins value=source.system.gold.coins localize=true toggled=true class="currency-field"}}
-        </div>
-        <div class="currency-input" data-currency="handfuls" data-tooltip="Handfuls">
-            <div class="icon" aria-hidden="true"><i class="fa-solid fa-coins"></i></div>
-            {{formInput systemFields.gold.fields.handfuls value=source.system.gold.handfuls localize=true toggled=true class="currency-field"}}
-        </div>
-        <div class="currency-input" data-currency="bags" data-tooltip="Bags">
-            <div class="icon" aria-hidden="true"><i class="fa-solid fa-sack"></i></div>
-            {{formInput systemFields.gold.fields.bags value=source.system.gold.bags localize=true toggled=true class="currency-field"}}
-        </div>
-        <div class="currency-input" data-currency="chests" data-tooltip="Chests">
-            <div class="icon" aria-hidden="true"><i class="fa-solid fa-treasure-chest"></i></div>
-            {{formInput systemFields.gold.fields.chests value=source.system.gold.chests localize=true toggled=true class="currency-field"}}
-        </div>
-    </div>
+    {{#if inventory.hasCurrency}}
+        {{> "systems/daggerheart/templates/sheets/global/partials/gold.hbs" currencies=inventory.currencies}}
+    {{/if}}
 
     <div class="search-section">
         <div class="search-bar">

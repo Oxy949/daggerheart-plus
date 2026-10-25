@@ -1,6 +1,6 @@
 import { MODULE_ID, COLOR_LIGHT_DARK_DEFAULTS, COLOR_CSS_MAP, colorSettingKey } from "./constants.js";
 import { applyTooltipCardMaxWidth } from "./tooltip-manager.js";
-import { applyEnhancedChatStyles, applyParticleEffects, applyCriticalHitParticles, applyTokenCountersVisibilityBySetting, applyDomainCardOpenSetting, applyCurrencyVisibility, applySystemCurrencyVisibility, applyCurrencyIcons, applyCurrencyLabels, applyColorOverrides, applyCustomFont } from "./style-toggles.js";
+import { applyEnhancedChatStyles, applyParticleEffects, applyCriticalHitParticles, applyTokenCountersVisibilityBySetting, applyDomainCardOpenSetting, applyColorOverrides, applyCustomFont } from "./style-toggles.js";
 import { getRenderedApplications } from "./compat.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -210,66 +210,6 @@ class ChatEffectsConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     await game.settings.set(MODULE_ID, "enableEnhancedChat", data.enableEnhancedChat ?? true);
     await game.settings.set(MODULE_ID, "enableParticles", data.enableParticles ?? true);
     await game.settings.set(MODULE_ID, "alwaysOpenDomainCards", data.alwaysOpenDomainCards ?? false);
-  }
-}
-
-class CurrencyConfig extends HandlebarsApplicationMixin(ApplicationV2) {
-  static DEFAULT_OPTIONS = {
-    id: "dhp-currency-config",
-    tag: "form",
-    window: {
-      title: "DHP.Settings.Currency.Title",
-      icon: "fas fa-coins",
-    },
-    position: {
-      width: 450,
-      height: "auto",
-    },
-    form: {
-      handler: CurrencyConfig.#onSubmit,
-      closeOnSubmit: true,
-    },
-    actions: {
-      filePicker: CurrencyConfig.#onFilePicker,
-    },
-  };
-
-  static PARTS = {
-    form: {
-      template: `modules/${MODULE_ID}/templates/applications/currency-config.hbs`,
-    },
-  };
-
-  async _prepareContext(options) {
-    return {
-      enableCurrency: game.settings.get(MODULE_ID, "enableCurrency"),
-      currencyIconCoins: game.settings.get(MODULE_ID, "currencyIconCoins"),
-      currencyIconHandfuls: game.settings.get(MODULE_ID, "currencyIconHandfuls"),
-      currencyIconBags: game.settings.get(MODULE_ID, "currencyIconBags"),
-      currencyIconChests: game.settings.get(MODULE_ID, "currencyIconChests"),
-    };
-  }
-
-  static async #onSubmit(event, form, formData) {
-    const data = formData.object;
-    await game.settings.set(MODULE_ID, "enableCurrency", data.enableCurrency ?? true);
-    await game.settings.set(MODULE_ID, "currencyIconCoins", data.currencyIconCoins ?? "");
-    await game.settings.set(MODULE_ID, "currencyIconHandfuls", data.currencyIconHandfuls ?? "");
-    await game.settings.set(MODULE_ID, "currencyIconBags", data.currencyIconBags ?? "");
-    await game.settings.set(MODULE_ID, "currencyIconChests", data.currencyIconChests ?? "");
-  }
-
-  static async #onFilePicker(event, target) {
-    const field = target.dataset.field;
-    const input = this.element.querySelector(`input[name="${field}"]`);
-    const fp = new FilePicker({
-      type: "image",
-      current: input?.value || "",
-      callback: (path) => {
-        if (input) input.value = path;
-      },
-    });
-    fp.browse();
   }
 }
 
@@ -530,15 +470,6 @@ export function registerModuleSettings() {
     restricted: false,
   });
 
-  game.settings.registerMenu(MODULE_ID, "currencyMenu", {
-    name: "DHP.Settings.Currency.Menu.Name",
-    label: "DHP.Settings.Currency.Menu.Label",
-    hint: "DHP.Settings.Currency.Menu.Hint",
-    icon: "fas fa-coins",
-    type: CurrencyConfig,
-    restricted: true,
-  });
-
   game.settings.registerMenu(MODULE_ID, "sheetDimensionsMenu", {
     name: "DHP.Settings.SheetDimensions.Menu.Name",
     label: "DHP.Settings.SheetDimensions.Menu.Label",
@@ -667,57 +598,6 @@ export function registerModuleSettings() {
         console.warn("Daggerheart Plus | Failed re-rendering sheets for pip display", e);
       }
     },
-  });
-
-  game.settings.register(MODULE_ID, "enableCurrency", {
-    name: "Enable Currency",
-    scope: "world",
-    config: false,
-    type: Boolean,
-    default: true,
-    onChange: (value) => {
-      try {
-        applyCurrencyVisibility(Boolean(value));
-      } catch (e) {
-        console.warn("Daggerheart Plus | Failed applying currency visibility", e);
-      }
-    },
-  });
-
-  game.settings.register(MODULE_ID, "currencyIconCoins", {
-    name: "Currency Icon: Coins",
-    scope: "world",
-    config: false,
-    type: String,
-    default: "",
-    onChange: () => applyCurrencyIcons(),
-  });
-
-  game.settings.register(MODULE_ID, "currencyIconHandfuls", {
-    name: "Currency Icon: Handfuls",
-    scope: "world",
-    config: false,
-    type: String,
-    default: "",
-    onChange: () => applyCurrencyIcons(),
-  });
-
-  game.settings.register(MODULE_ID, "currencyIconBags", {
-    name: "Currency Icon: Bags",
-    scope: "world",
-    config: false,
-    type: String,
-    default: "",
-    onChange: () => applyCurrencyIcons(),
-  });
-
-  game.settings.register(MODULE_ID, "currencyIconChests", {
-    name: "Currency Icon: Chests",
-    scope: "world",
-    config: false,
-    type: String,
-    default: "",
-    onChange: () => applyCurrencyIcons(),
   });
 
   game.settings.register(MODULE_ID, "enableTokenCounters", {
